@@ -55,11 +55,7 @@ class Device(BaseModel):
                         .values('uuid', 'data__storagenr', 'data__value').all())
             latest_msg = max(msgs, key=lambda m: datetime.strptime(m['data__value'], "%Y-%m-%dT%H:%M:%S.000000"))
             message = Message.objects.get(uuid=latest_msg['uuid'])
-            data = (message,
-                    message.data.filter(storagenr=latest_msg['data__storagenr'])
-                    .exclude(Q(dimension__exact='Time Point (date)') |
-                             Q(dimension__exact='Time Point (time & date)') |
-                             Q(dimension__exact='Manufacturer specific')).first(),
+            data = (message, latest_msg['data__storagenr'],
                     datetime.strptime(latest_msg['data__value'], "%Y-%m-%dT%H:%M:%S.000000"))
             return data
         return None
@@ -76,17 +72,32 @@ class Device(BaseModel):
             date: date of the due date
         """
 
-        message, latest_value, date = None if self.get_latest_device_message_and_date() is None \
+        n = None if self.get_latest_device_message_and_date() is None \
             else self.get_latest_device_message_and_date()
-        values = list(message.data.filter(dimension__exact='Time Point (date)')
-                      .values('storagenr', 'value').all())
-        due_data = max(values, key=lambda v: datetime.strptime(v['value'], "%Y-%m-%dT%H:%M:%S.000000") < date)
-        data = (message.data.filter(storagenr=due_data['storagenr'])
-                .exclude(Q(dimension__exact='Time Point (date)') |
-                         Q(dimension__exact='Time Point (time & date)') |
-                         Q(dimension__exact='Manufacturer specific')).first(),
-                datetime.strptime(due_data['value'], "%Y-%m-%dT%H:%M:%S.000000"))
-        return data
+        if n is not None:
+            values = list(n[0].data.filter(dimension__exact='Time Point (date)')
+                          .values('storagenr', 'value').all())
+            due_data = max(values, key=lambda v: datetime.strptime(v['value'], "%Y-%m-%dT%H:%M:%S.000000") < n[2])
+            data = (n[0].data.filter(storagenr=due_data['storagenr'])
+                    .exclude(dimension__exact='Time Point (date)').first(),
+                    datetime.strptime(due_data['value'], "%Y-%m-%dT%H:%M:%S.000000"))
+            return data
+        return n
+
+    def get_latest_value(self):
+        """get_latest_value
+            - returns latest value using the storage got from the latest date storagenr value
+            and the dimension from the due value
+            :returns int
+             int: latest value
+        """
+        n = self.get_latest_device_message_and_date()
+        t = self.get_latest_message_due_date_and_due_date_measurement()
+        if n is not None and t is not None:
+            latest_value = n[0].data.filter(storagenr=n[1], dimension__exact=t[0].dimension) \
+                .values_list('value').first()
+            return latest_value[0]
+        return None
 
     def __str__(self):
         return str(self.identnr)
@@ -104,14 +115,6 @@ class Message(BaseModel):
         ordering = ['uuid']
         verbose_name = 'Message'
         verbose_name_plural = 'Messages'
-
-    def get_dimension(self):
-        """returns a dimensions value for the data provided in a message"""
-        exclude = {'Manufacturer specific', 'Time Point (time & date)', 'Time Point (date)'}
-        if self.data is not None and self.data.count() > 0:
-            dimensions = {value.dimension for value in self.data.iterator()}
-            return list(dimensions.difference(exclude))[0]
-        return ''
 
     def __str__(self):
         return str(self.device)

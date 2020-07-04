@@ -24,10 +24,10 @@ class DeviceSerializer(serializers.ModelSerializer):
         device, created = Device.objects.get_or_create(identnr=validated_data['identnr'])
 
         if created:
-            device.device_type = validated_data['type'],
+            device.device_type = validated_data['type']
             device.status = validated_data['status']
-            device.version = validated_data['version'],
-            device.accessnr = validated_data['accessnr'],
+            device.version = validated_data['version']
+            device.accessnr = validated_data['accessnr']
             device.manufacturer = validated_data['manufacturer']
             device.save()
 
@@ -55,10 +55,10 @@ class DeviceTelemetrySerializer(serializers.ModelSerializer):
 
         # if created then update it other values from the default values
         if created:
-            device.device_type = device_data['type'],
+            device.device_type = device_data['type']
             device.status = device_data['status']
-            device.version = device_data['version'],
-            device.accessnr = device_data['accessnr'],
+            device.version = device_data['version']
+            device.accessnr = device_data['accessnr']
             device.manufacturer = device_data['manufacturer']
             device.save()
 
@@ -124,8 +124,8 @@ class DeviceLatestTelemetryCVSSerializer(serializers.ModelSerializer):
         data['device_manufacturer'] = instance.manufacturer
         data['device_type'] = instance.device_type
         data['device_version'] = instance.version
-        data['dimension_of_measurement'] = msg.get_dimension()
-        data['value_of_newest_measurement'] = latest_val
+        data['dimension_of_measurement'] = due_val.dimension
+        data['value_of_newest_measurement'] = instance.get_latest_value()
         data['value_of_measurement_in_due_date'] = due_val
         data['date_of_due_date'] = due_date.strftime("%d %B, %Y")
 
