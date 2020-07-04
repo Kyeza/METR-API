@@ -75,9 +75,8 @@ class Device(BaseModel):
         n = None if self.get_latest_device_message_and_date() is None \
             else self.get_latest_device_message_and_date()
         if n is not None:
-            values = list(n[0].data.filter(dimension__exact='Time Point (date)')
-                          .values('storagenr', 'value').all())
-            due_data = max(values, key=lambda v: datetime.strptime(v['value'], "%Y-%m-%dT%H:%M:%S.000000") < n[2])
+            values = list(n[0].data.filter(dimension__exact='Time Point (date)').values('storagenr', 'value').all())
+            due_data = max(values, key=lambda v: datetime.strptime(v['value'], "%Y-%m-%dT%H:%M:%S.000000"))
             data = (n[0].data.filter(storagenr=due_data['storagenr'])
                     .exclude(dimension__exact='Time Point (date)').first(),
                     datetime.strptime(due_data['value'], "%Y-%m-%dT%H:%M:%S.000000"))
