@@ -3,7 +3,6 @@ from collections import Counter
 from datetime import datetime
 
 from django.db import models
-from django.db.models import Q
 from django.utils import timezone
 
 
@@ -126,7 +125,7 @@ class Value(BaseModel):
     value = models.CharField(max_length=50)
     tariff = models.PositiveIntegerField()
     subunit = models.PositiveIntegerField()
-    dimension = models.CharField(max_length=50)
+    dimension = models.CharField(max_length=50, db_index=True)
     storagenr = models.PositiveIntegerField(db_index=True)
 
     class Meta:

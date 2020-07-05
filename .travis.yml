@@ -11,7 +11,7 @@ env:
   - DJANGO=3.0 DB=p
 
 before_install:
-  - psql -c 'create database postgres;' -U postgres
+  - psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'postgres'" | grep -q 1 || psql -U postgres -c "CREATE DATABASE postgres"
 
 install:
   - pip install -r requirements.txt
