@@ -92,7 +92,8 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'db',
+        # create .env file set DATABASE_HOST=db for docker-compose up to run
+        'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
         'PORT': 5432,
     }
 }
