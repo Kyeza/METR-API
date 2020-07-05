@@ -125,7 +125,7 @@ class Value(BaseModel):
     value = models.CharField(max_length=50)
     tariff = models.PositiveIntegerField()
     subunit = models.PositiveIntegerField()
-    dimension = models.CharField(max_length=50)
+    dimension = models.CharField(max_length=50, db_index=True)
     storagenr = models.PositiveIntegerField(db_index=True)
 
     class Meta:

@@ -1,8 +1,12 @@
+import logging
 from collections import OrderedDict
 
 from rest_framework import serializers
 
 from telemetry.models import Value, Device, Message
+
+
+logger = logging.getLogger('api')
 
 
 class ValueSerializer(serializers.ModelSerializer):
@@ -62,10 +66,14 @@ class DeviceTelemetrySerializer(serializers.ModelSerializer):
             device.manufacturer = device_data['manufacturer']
             device.save()
 
+            logger.info(f"Device with ID: {device.identnr} has been created")
+
         message = Message.objects.create(device=device)
 
         for value in values_data:
             Value.objects.create(message=message, **value)
+
+        logger.info(f"Telemetry Message for Device with ID: {device.identnr} has been created")
 
         return message
 
@@ -116,17 +124,24 @@ class DeviceLatestTelemetryCVSSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
-        data = OrderedDict()
+        representation = OrderedDict()
         msg, latest_value, latest_date = instance.get_latest_device_message_and_date()
         due_value, due_date = instance.get_latest_message_due_date_and_due_date_measurement()
-        data['date_and_time_of_message'] = latest_date.strftime("%d %B, %Y %H:%M:%S")
-        data['device_id'] = instance.identnr
-        data['device_manufacturer'] = instance.manufacturer
-        data['device_type'] = instance.device_type
-        data['device_version'] = instance.version
-        data['dimension_of_measurement'] = msg.get_dimension()
-        data['value_of_newest_measurement'] = latest_value
-        data['value_of_measurement_in_due_date'] = due_value
-        data['date_of_due_date'] = due_date.strftime("%d %B, %Y")
+        representation['date_and_time_of_message'] = latest_date.strftime("%d %B, %Y %H:%M:%S")
+        representation['device_id'] = instance.identnr
+        representation['device_manufacturer'] = instance.manufacturer
+        representation['device_type'] = instance.device_type
+        representation['device_version'] = instance.version
+        representation['dimension_of_measurement'] = msg.get_dimension()
+        representation['value_of_newest_measurement'] = latest_value
+        representation['value_of_measurement_in_due_date'] = due_value
+        representation['date_of_due_date'] = due_date.strftime("%d %B, %Y")
 
-        return data
+        logger.info("producing csv data | Date and time of Message: {date_and_time_of_message} | DeviceID: {"
+                    "device_id} | Device Manufacturer: {device_manufacturer} | Device Type: {device_type} | "
+                    "Device Version: {device_version} | Dimensions of Measurement: {dimension_of_measurement} | "
+                    "Value of the Newest Measurement: {value_of_newest_measurement} | Value of Measurement in the due "
+                    "date: {value_of_measurement_in_due_date} | "
+                    "Date of Due Date: {date_of_due_date} |".format(**representation))
+
+        return representation
