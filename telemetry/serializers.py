@@ -117,16 +117,16 @@ class DeviceLatestTelemetryCVSSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = OrderedDict()
-        msg, latest_val, date = instance.get_latest_device_message_and_date()
-        due_val, due_date = instance.get_latest_message_due_date_and_due_date_measurement()
-        data['date_and_time_of_message'] = date.strftime("%d %B, %Y %H:%M:%S")
+        msg, latest_value, latest_date = instance.get_latest_device_message_and_date()
+        due_value, due_date = instance.get_latest_message_due_date_and_due_date_measurement()
+        data['date_and_time_of_message'] = latest_date.strftime("%d %B, %Y %H:%M:%S")
         data['device_id'] = instance.identnr
         data['device_manufacturer'] = instance.manufacturer
         data['device_type'] = instance.device_type
         data['device_version'] = instance.version
-        data['dimension_of_measurement'] = due_val.dimension
-        data['value_of_newest_measurement'] = instance.get_latest_value()
-        data['value_of_measurement_in_due_date'] = due_val
+        data['dimension_of_measurement'] = msg.get_dimension()
+        data['value_of_newest_measurement'] = latest_value
+        data['value_of_measurement_in_due_date'] = due_value
         data['date_of_due_date'] = due_date.strftime("%d %B, %Y")
 
         return data
