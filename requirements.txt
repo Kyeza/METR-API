@@ -23,4 +23,4 @@ six==1.15.0
 sqlparse==0.3.1
 unicodecsv==0.14.1
 uritemplate==3.0.1
-urllib3==1.25.9
+urllib3==1.26.5
